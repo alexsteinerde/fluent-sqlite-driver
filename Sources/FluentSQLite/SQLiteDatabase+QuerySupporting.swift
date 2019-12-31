@@ -85,7 +85,15 @@ extension SQLiteDatabase: QuerySupporting {
             delete.predicate = fluent.predicate
             query = .delete(delete)
         }
+        let start = DispatchTime.now()
         return conn.query(query) { try handler($0, conn) }
+        .do { (_) in
+            let end = DispatchTime.now()
+            let nanoTime = end.uptimeNanoseconds - start.uptimeNanoseconds
+            let timeInterval = Double(nanoTime) / 1_000_000
+            var binds: [Encodable] = []
+            print("Query '\(query.serialize(&binds))' took \(timeInterval) ms")
+        }
     }
     
     /// See `QuerySupporting`.

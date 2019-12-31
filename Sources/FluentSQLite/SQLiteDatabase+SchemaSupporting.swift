@@ -79,7 +79,15 @@ extension SQLiteDatabase: SchemaSupporting {
             let dropTable: SQLiteDropTable = .dropTable(fluent.table)
             query = ._dropTable(dropTable)
         }
+        let start = DispatchTime.now()
         return conn.query(query).transform(to: ())
+        .do { (_) in
+            let end = DispatchTime.now()
+            let nanoTime = end.uptimeNanoseconds - start.uptimeNanoseconds
+            let timeInterval = Double(nanoTime) / 1_000_000
+            var binds: [Encodable] = []
+            print("Query '\(query.serialize(&binds))' took \(timeInterval) ms")
+        }
     }
     
     /// See `SchemaSupporting`.
